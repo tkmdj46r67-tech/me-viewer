@@ -1,17 +1,9 @@
 'use strict';
 
-/* ── Unified muted accents (used for volume badges) ────── */
+/* ── Unified muted accents (volume badges) ────────────── */
 const ACCENTS = [
-  '#8f7048',  // sepia
-  '#6d7d63',  // sage
-  '#7a6e84',  // dusty plum
-  '#8a7a58',  // ochre
-  '#5c7482',  // slate
-  '#8a6a5e',  // terracotta
-  '#6d7a58',  // olive
-  '#7a5e6d',  // mauve
-  '#8a8064',  // tan
-  '#5a7772',  // teal
+  '#8f7048', '#6d7d63', '#7a6e84', '#8a7a58', '#5c7482',
+  '#8a6a5e', '#6d7a58', '#7a5e6d', '#8a8064', '#5a7772',
 ];
 
 /* ── Datasets ─────────────────────────────────────────── */
@@ -19,32 +11,27 @@ const DATASETS = {
   ireland: {
     key: 'ireland',
     label: 'Ireland',
-    url: './MECW_ALL_ireland.json',
+    url: './MECW_ALL_ireland.json',      // single file
     titleHTML: 'Ireland <span>&amp;</span> the Irish Question',
     titlePlain: 'Ireland & the Irish Question',
-    loaded: false,
-    loading: false,
-    error: null,
-    volumes: [],
-    rawCount: 0,
+    loaded: false, loading: false, error: null,
+    volumes: [], rawCount: 0,
   },
   hegel: {
     key: 'hegel',
     label: 'Hegel',
-    url: './MECW_ALL_hegel.json',
+    indexUrl: './MECW_hegel_index.json', // split mode
     titleHTML: 'Hegel <span>&amp;</span> Hegelianism',
     titlePlain: 'Hegel & Hegelianism',
-    loaded: false,
-    loading: false,
-    error: null,
-    volumes: [],
-    rawCount: 0,
+    loaded: false, loading: false, error: null,
+    volumes: [], rawCount: 0,
+    index: null,
   },
 };
 
 const STATE = {
   current: 'ireland',
-  hitIndex: new Map(),   // hit.__id -> hit object
+  hitIndex: new Map(),
 };
 
 let UID = 0;
@@ -54,27 +41,19 @@ const $ = (sel, root = document) => root.querySelector(sel);
 
 function escapeHtml(s) {
   return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
-
-function escapeRegExp(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
+function escapeRegExp(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 function hueFor(s) {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360;
   return h;
 }
-
 function plural(n, w) { return `${n} ${w}${n === 1 ? '' : 's'}`; }
-
 function accentFor(i) { return ACCENTS[i % ACCENTS.length]; }
 
-/* ── Keyword highlighting ─────────────────────────────── */
+/* ── Highlight ────────────────────────────────────────── */
 function highlight(raw, keywords) {
   const text = String(raw ?? '');
   if (!keywords || !keywords.length) return escapeHtml(text);
@@ -85,7 +64,6 @@ function highlight(raw, keywords) {
 
   const re = new RegExp(sorted.map(escapeRegExp).join('|'), 'gi');
   let out = '', last = 0, m;
-
   while ((m = re.exec(text)) !== null) {
     out += escapeHtml(text.slice(last, m.index));
     const hue = hueFor(m[0].toLowerCase());
@@ -97,8 +75,9 @@ function highlight(raw, keywords) {
   return out;
 }
 
-/* ── Data → tree structure ────────────────────────────── */
-function buildTree(raw) {
+/* ── Tree builders ────────────────────────────────────── */
+function buildTreeFromRaw(raw) {
+  // Single-file mode (Ireland)
   const byVol = new Map();
   for (const hit of raw) {
     const v = String(hit.volume);
@@ -111,9 +90,9 @@ function buildTree(raw) {
 
   for (let i = 1; i <= maxVol; i++) {
     const hits = byVol.get(String(i)) || [];
-
     if (!hits.length) {
-      volumes.push({ volume: String(i), hits: [], works: [], empty: true });
+      volumes.push({ volume: String(i), empty: true,
+                     works: [], hitsLoaded: true, hitCount: 0 });
       continue;
     }
 
@@ -121,10 +100,9 @@ function buildTree(raw) {
     for (const hit of hits) {
       hit.__id = ++UID;
       STATE.hitIndex.set(hit.__id, hit);
-
-      const title = (hit.title || '').trim();
+      const title = (hit.title || '').trim() || null;
       const key = title || '__untitled__';
-      if (!workMap.has(key)) workMap.set(key, { title: title || null, hits: [] });
+      if (!workMap.has(key)) workMap.set(key, { title, hits: [] });
       workMap.get(key).hits.push(hit);
     }
 
@@ -139,18 +117,81 @@ function buildTree(raw) {
       return a.minPage - b.minPage;
     });
 
-    volumes.push({ volume: String(i), hits, works, empty: false });
+    volumes.push({
+      volume: String(i), empty: false,
+      works, hitsLoaded: true,
+      hitCount: hits.length,
+    });
   }
-
   return volumes;
 }
 
-/* ── Sidebar tree rendering (lazy) ────────────────────── */
+function buildSkeletonFromIndex(index) {
+  // Split mode (Hegel) — works array is filled later on expand
+  const maxVol = Math.max(50, ...index.volumes.map(v => v.volume));
+  const byVol = new Map(index.volumes.map(v => [String(v.volume), v]));
+  const volumes = [];
+
+  for (let i = 1; i <= maxVol; i++) {
+    const entry = byVol.get(String(i));
+    if (!entry || !entry.hit_count) {
+      volumes.push({ volume: String(i), empty: true,
+                     works: [], hitsLoaded: true, hitCount: 0 });
+      continue;
+    }
+    volumes.push({
+      volume: String(i),
+      empty: false,
+      hitsLoaded: false,
+      hitCount: entry.hit_count,
+      url: entry.url,
+      works: [],
+    });
+  }
+  return volumes;
+}
+
+/* ── Lazy volume fetch ────────────────────────────────── */
+async function fetchVolumeHits(volData) {
+  const ds = DATASETS[STATE.current];
+  const baseUrl = new URL(ds.indexUrl, window.location.href);
+  const volUrl = new URL(volData.url, baseUrl).href;
+
+  const res = await fetch(volUrl, { cache: 'force-cache' });
+  if (!res.ok) throw new Error(`HTTP ${res.status} — ${volData.url}`);
+  const hits = await res.json();
+
+  const workMap = new Map();
+  for (const hit of hits) {
+    hit.__id = ++UID;
+    STATE.hitIndex.set(hit.__id, hit);
+    const title = (hit.title || '').trim() || null;
+    const key = title || '__untitled__';
+    if (!workMap.has(key)) workMap.set(key, { title, hits: [] });
+    workMap.get(key).hits.push(hit);
+  }
+
+  const works = [...workMap.values()];
+  for (const w of works) {
+    w.hits.sort((a, b) => (Number(a.page) || 0) - (Number(b.page) || 0));
+    w.minPage = Number(w.hits[0]?.page) || Infinity;
+  }
+  works.sort((a, b) => {
+    if (a.title === null && b.title !== null) return 1;
+    if (b.title === null && a.title !== null) return -1;
+    return a.minPage - b.minPage;
+  });
+
+  volData.works = works;
+  volData.hitsLoaded = true;
+}
+
+/* ── Sidebar rendering ────────────────────────────────── */
 function renderTree(volumes) {
   const tree = $('#tree');
   tree.innerHTML = '';
   tree.classList.remove('switching');
-  void tree.offsetWidth;         // restart animation
+  void tree.offsetWidth;
   tree.classList.add('switching');
 
   volumes.forEach((v, idx) => {
@@ -180,16 +221,34 @@ function renderVolume(volData, index) {
     <span class="chev">▸</span>
     <span class="vol-badge">${escapeHtml(volData.volume)}</span>
     <span class="vol-title">Volume ${escapeHtml(volData.volume)}</span>
-    <span class="vol-count">${plural(volData.hits.length, 'passage')}</span>
+    <span class="vol-count">${plural(volData.hitCount, 'passage')}</span>
   `;
 
   const body = document.createElement('div');
   body.className = 'vol-body';
-
   details.append(summary, body);
 
-  details.addEventListener('toggle', () => {
-    if (!details.open || body.dataset.rendered === '1') return;
+  let inFlight = false;
+
+  details.addEventListener('toggle', async () => {
+    if (!details.open) return;
+    if (body.dataset.rendered === '1' || inFlight) return;
+
+    if (!volData.empty && !volData.hitsLoaded) {
+      inFlight = true;
+      body.innerHTML = '<div class="vol-loading">Loading volume…</div>';
+      try {
+        await fetchVolumeHits(volData);
+      } catch (e) {
+        body.innerHTML =
+          `<div class="tree-error">Failed to load: ${escapeHtml(String(e.message || e))}</div>`;
+        inFlight = false;
+        return;
+      }
+      body.innerHTML = '';
+      inFlight = false;
+    }
+
     body.dataset.rendered = '1';
     for (const work of volData.works) body.append(renderWork(work));
   });
@@ -242,11 +301,10 @@ function renderPassage(hit) {
     <span class="passage-meta">p. ${escapeHtml(String(hit.page))}${approx}</span>
     <span class="passage-preview">${escapeHtml(preview)}</span>
   `;
-
   return btn;
 }
 
-/* ── Reader rendering ─────────────────────────────────── */
+/* ── Reader ───────────────────────────────────────────── */
 function renderPlaceholder() {
   const ds = DATASETS[STATE.current];
   $('#reader').innerHTML = `
@@ -269,7 +327,6 @@ function pageRange(hit) {
 function showHit(hit) {
   const reader = $('#reader');
   const keywords = hit.keywords || [];
-
   const sentence = hit.sentence
     || (hit.passage ? String(hit.passage).split(/(?<=[.!?])\s/)[0] : '');
   const passage = hit.passage || '';
@@ -332,11 +389,10 @@ function showHit(hit) {
   document.querySelectorAll('.passage.active').forEach(n => n.classList.remove('active'));
   const active = document.querySelector(`.passage[data-id="${hit.__id}"]`);
   if (active) active.classList.add('active');
-
   reader.scrollTop = 0;
 }
 
-/* ── Dataset loading / switching ──────────────────────── */
+/* ── Dataset loading ──────────────────────────────────── */
 async function loadDataset(key) {
   const ds = DATASETS[key];
   if (ds.loaded || ds.loading) return ds.loaded;
@@ -345,12 +401,20 @@ async function loadDataset(key) {
   ds.error = null;
 
   try {
-    const res = await fetch(ds.url, { cache: 'force-cache' });
-    if (!res.ok) throw new Error(`HTTP ${res.status} — ${ds.url}`);
-    const raw = await res.json();
-    if (!Array.isArray(raw)) throw new Error('JSON is not an array');
-    ds.volumes = buildTree(raw);
-    ds.rawCount = raw.length;
+    if (ds.indexUrl) {
+      const res = await fetch(ds.indexUrl, { cache: 'force-cache' });
+      if (!res.ok) throw new Error(`HTTP ${res.status} — ${ds.indexUrl}`);
+      ds.index = await res.json();
+      ds.volumes = buildSkeletonFromIndex(ds.index);
+      ds.rawCount = ds.index.total_hits;
+    } else {
+      const res = await fetch(ds.url, { cache: 'force-cache' });
+      if (!res.ok) throw new Error(`HTTP ${res.status} — ${ds.url}`);
+      const raw = await res.json();
+      if (!Array.isArray(raw)) throw new Error('JSON is not an array');
+      ds.volumes = buildTreeFromRaw(raw);
+      ds.rawCount = raw.length;
+    }
     ds.loaded = true;
   } catch (err) {
     ds.error = err;
@@ -358,7 +422,6 @@ async function loadDataset(key) {
   } finally {
     ds.loading = false;
   }
-
   return ds.loaded;
 }
 
@@ -366,23 +429,16 @@ function updateSidebarHeader() {
   const ds = DATASETS[STATE.current];
   $('#dataset-title').innerHTML = ds.titleHTML;
 
-  if (ds.error) {
-    $('#stats').textContent = 'Failed to load this dataset';
-    return;
-  }
-  if (!ds.loaded) {
-    $('#stats').textContent = 'Loading…';
-    return;
-  }
+  if (ds.error) { $('#stats').textContent = 'Failed to load this dataset'; return; }
+  if (!ds.loaded) { $('#stats').textContent = 'Loading…'; return; }
+
   const withRefs = ds.volumes.filter(v => !v.empty).length;
   $('#stats').textContent =
     `${ds.rawCount.toLocaleString()} passages · ${withRefs} volume${withRefs === 1 ? '' : 's'}`;
 }
 
-function setToggleDisabled(disabled) {
-  document.querySelectorAll('.dataset-btn').forEach(b => {
-    b.disabled = disabled;
-  });
+function setToggleDisabled(d) {
+  document.querySelectorAll('.dataset-btn').forEach(b => { b.disabled = d; });
 }
 
 async function switchDataset(key) {
@@ -399,8 +455,7 @@ async function switchDataset(key) {
   updateSidebarHeader();
 
   if (!ds.loaded) {
-    $('#tree').innerHTML =
-      `<div class="tree-loading">Loading ${escapeHtml(ds.label)}…</div>`;
+    $('#tree').innerHTML = `<div class="tree-loading">Loading ${escapeHtml(ds.label)}…</div>`;
     renderPlaceholder();
     setToggleDisabled(true);
     await loadDataset(key);
@@ -409,7 +464,7 @@ async function switchDataset(key) {
 
   if (ds.error) {
     $('#tree').innerHTML =
-      `<div class="tree-error">Failed to load ${escapeHtml(ds.url)}<br>
+      `<div class="tree-error">Failed to load ${escapeHtml(ds.indexUrl || ds.url)}<br>
        <small>${escapeHtml(String(ds.error.message || ds.error))}</small></div>`;
     updateSidebarHeader();
     return;
@@ -420,7 +475,7 @@ async function switchDataset(key) {
   updateSidebarHeader();
 }
 
-/* ── Event wiring ─────────────────────────────────────── */
+/* ── Wiring ───────────────────────────────────────────── */
 $('.dataset-toggle').addEventListener('click', (e) => {
   const btn = e.target.closest('.dataset-btn');
   if (!btn || btn.disabled) return;
@@ -434,7 +489,6 @@ $('#tree').addEventListener('click', (e) => {
   if (hit) showHit(hit);
 });
 
-/* ── Init ─────────────────────────────────────────────── */
 async function init() {
   const loading = $('#loading');
 
@@ -443,12 +497,10 @@ async function init() {
   setToggleDisabled(false);
 
   const ds = DATASETS[STATE.current];
-
   if (ds.error) {
     loading.innerHTML = `
       <p style="color:#d8a395">Could not load the corpus.</p>
       <small>${escapeHtml(String(ds.error.message || ds.error))}</small>
-      <small>Make sure ${escapeHtml(ds.url)} sits next to index.html.</small>
     `;
     updateSidebarHeader();
     return;
