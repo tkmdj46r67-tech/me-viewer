@@ -201,6 +201,13 @@ details[open] > summary .chev { transform: rotate(90deg); }
 
 .vol > summary { font-family: 'Space Grotesk', sans-serif; font-weight: 500; }
 
+.vol-loading {
+  padding: .5rem .7rem;
+  color: var(--sidebar-muted);
+  font-size: .78rem;
+  font-style: italic;
+}
+
 .vol-badge {
   background: var(--accent, var(--accent-light));
   color: var(--paper-bright);
