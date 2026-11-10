@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MECW · Ireland & the Irish Question</title>
+<title>MECW · Reader</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,15 +15,28 @@
   <div id="loading" class="loading">
     <div class="spinner" aria-hidden="true"></div>
     <p>Loading the corpus…</p>
-    <small>18.6 MB of references</small>
+    <small>MECW references</small>
   </div>
 
   <aside class="sidebar">
     <header class="sidebar-head">
-      <div class="brand">MECW</div>
-      <h1>Ireland <span>&amp;</span> the Irish Question</h1>
+      <div class="brand">MECW · Reader</div>
+
+      <div class="dataset-toggle" role="tablist" aria-label="Dataset">
+        <button type="button" class="dataset-btn active"
+                data-dataset="ireland" role="tab" aria-selected="true">
+          Ireland
+        </button>
+        <button type="button" class="dataset-btn"
+                data-dataset="hegel" role="tab" aria-selected="false">
+          Hegel
+        </button>
+      </div>
+
+      <h1 id="dataset-title">Ireland <span>&amp;</span> the Irish Question</h1>
       <p id="stats" class="stats">Loading…</p>
     </header>
+
     <nav id="tree" class="tree" aria-label="Volume and work tree"></nav>
   </aside>
 
