@@ -1,0 +1,246 @@
+{
+  "dataset": "hegel",
+  "total_hits": 2455,
+  "volumes": [
+    {
+      "volume": 1,
+      "url": "MECW_hegel_vol_01.json",
+      "hit_count": 103
+    },
+    {
+      "volume": 2,
+      "url": "MECW_hegel_vol_02.json",
+      "hit_count": 197
+    },
+    {
+      "volume": 3,
+      "url": "MECW_hegel_vol_03.json",
+      "hit_count": 304
+    },
+    {
+      "volume": 4,
+      "url": "MECW_hegel_vol_04.json",
+      "hit_count": 128
+    },
+    {
+      "volume": 5,
+      "url": "MECW_hegel_vol_05.json",
+      "hit_count": 409
+    },
+    {
+      "volume": 6,
+      "url": "MECW_hegel_vol_06.json",
+      "hit_count": 55
+    },
+    {
+      "volume": 7,
+      "url": "MECW_hegel_vol_07.json",
+      "hit_count": 13
+    },
+    {
+      "volume": 8,
+      "url": "MECW_hegel_vol_08.json",
+      "hit_count": 7
+    },
+    {
+      "volume": 9,
+      "url": "MECW_hegel_vol_09.json",
+      "hit_count": 10
+    },
+    {
+      "volume": 10,
+      "url": "MECW_hegel_vol_10.json",
+      "hit_count": 36
+    },
+    {
+      "volume": 11,
+      "url": "MECW_hegel_vol_11.json",
+      "hit_count": 54
+    },
+    {
+      "volume": 12,
+      "url": "MECW_hegel_vol_12.json",
+      "hit_count": 12
+    },
+    {
+      "volume": 13,
+      "url": "MECW_hegel_vol_13.json",
+      "hit_count": 4
+    },
+    {
+      "volume": 14,
+      "url": "MECW_hegel_vol_14.json",
+      "hit_count": 7
+    },
+    {
+      "volume": 15,
+      "url": "MECW_hegel_vol_15.json",
+      "hit_count": 10
+    },
+    {
+      "volume": 16,
+      "url": "MECW_hegel_vol_16.json",
+      "hit_count": 11
+    },
+    {
+      "volume": 17,
+      "url": "MECW_hegel_vol_17.json",
+      "hit_count": 9
+    },
+    {
+      "volume": 18,
+      "url": "MECW_hegel_vol_18.json",
+      "hit_count": 5
+    },
+    {
+      "volume": 19,
+      "url": "MECW_hegel_vol_19.json",
+      "hit_count": 3
+    },
+    {
+      "volume": 20,
+      "url": "MECW_hegel_vol_20.json",
+      "hit_count": 13
+    },
+    {
+      "volume": 21,
+      "url": "MECW_hegel_vol_21.json",
+      "hit_count": 6
+    },
+    {
+      "volume": 22,
+      "url": "MECW_hegel_vol_22.json",
+      "hit_count": 8
+    },
+    {
+      "volume": 23,
+      "url": "MECW_hegel_vol_23.json",
+      "hit_count": 9
+    },
+    {
+      "volume": 24,
+      "url": "MECW_hegel_vol_24.json",
+      "hit_count": 36
+    },
+    {
+      "volume": 25,
+      "url": "MECW_hegel_vol_25.json",
+      "hit_count": 385
+    },
+    {
+      "volume": 26,
+      "url": "MECW_hegel_vol_26.json",
+      "hit_count": 100
+    },
+    {
+      "volume": 27,
+      "url": "MECW_hegel_vol_27.json",
+      "hit_count": 5
+    },
+    {
+      "volume": 28,
+      "url": "MECW_hegel_vol_28.json",
+      "hit_count": 25
+    },
+    {
+      "volume": 29,
+      "url": "MECW_hegel_vol_29.json",
+      "hit_count": 12
+    },
+    {
+      "volume": 30,
+      "url": "MECW_hegel_vol_30.json",
+      "hit_count": 8
+    },
+    {
+      "volume": 32,
+      "url": "MECW_hegel_vol_32.json",
+      "hit_count": 3
+    },
+    {
+      "volume": 33,
+      "url": "MECW_hegel_vol_33.json",
+      "hit_count": 1
+    },
+    {
+      "volume": 34,
+      "url": "MECW_hegel_vol_34.json",
+      "hit_count": 2
+    },
+    {
+      "volume": 35,
+      "url": "MECW_hegel_vol_35.json",
+      "hit_count": 19
+    },
+    {
+      "volume": 37,
+      "url": "MECW_hegel_vol_37.json",
+      "hit_count": 7
+    },
+    {
+      "volume": 38,
+      "url": "MECW_hegel_vol_38.json",
+      "hit_count": 81
+    },
+    {
+      "volume": 39,
+      "url": "MECW_hegel_vol_39.json",
+      "hit_count": 47
+    },
+    {
+      "volume": 40,
+      "url": "MECW_hegel_vol_40.json",
+      "hit_count": 55
+    },
+    {
+      "volume": 41,
+      "url": "MECW_hegel_vol_41.json",
+      "hit_count": 17
+    },
+    {
+      "volume": 42,
+      "url": "MECW_hegel_vol_42.json",
+      "hit_count": 46
+    },
+    {
+      "volume": 43,
+      "url": "MECW_hegel_vol_43.json",
+      "hit_count": 40
+    },
+    {
+      "volume": 44,
+      "url": "MECW_hegel_vol_44.json",
+      "hit_count": 24
+    },
+    {
+      "volume": 45,
+      "url": "MECW_hegel_vol_45.json",
+      "hit_count": 16
+    },
+    {
+      "volume": 46,
+      "url": "MECW_hegel_vol_46.json",
+      "hit_count": 27
+    },
+    {
+      "volume": 47,
+      "url": "MECW_hegel_vol_47.json",
+      "hit_count": 12
+    },
+    {
+      "volume": 48,
+      "url": "MECW_hegel_vol_48.json",
+      "hit_count": 12
+    },
+    {
+      "volume": 49,
+      "url": "MECW_hegel_vol_49.json",
+      "hit_count": 29
+    },
+    {
+      "volume": 50,
+      "url": "MECW_hegel_vol_50.json",
+      "hit_count": 33
+    }
+  ]
+}
